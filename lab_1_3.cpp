@@ -1,175 +1,151 @@
 #include <iostream>
 #include <string>
+#include <cstdlib>
+#include <ctime>
 
-
-class Entity
-{
+class Entity {
 protected:
     std::string name;
     int health;
-    int attack;
+    int attackPower;
     int defense;
+
 public:
-    Entity(const std::string& name, int health, int attack, int defense)
-        : name(name), health(health), attack(attack), defense(defense) {}
+    Entity(const std::string& n, int h, int a, int d)
+        : name(n), health(h), attackPower(a), defense(d) {}
 
-    std::string getName() const { return name; }
+    virtual void attack(Entity& target) {
+        int damage = attackPower - target.defense;
+        if (damage > 0) {
+            target.health -= damage;
+            std::cout << name << " attacks " << target.name << " for " << damage << " damage!\n";
+        } else {
+            std::cout << name << " attacks " << target.name << ", but it has no effect!\n";
+        }
+    }
 
-    int getHealth() const { return health; }
+    virtual void heal(int amount) {
+        health += amount;
+        std::cout << name << " heals for " << amount << " HP. Current HP: " << health << std::endl;
+    }
 
-    int getAttack() const { return attack; }
-
-    int getDefense() const { return defense; }
-
-    virtual void displayInfo() const
-    {
+    virtual void displayInfo() const {
         std::cout << "Name: " << name << ", HP: " << health
-            << ", Attack: " << attack << ", Defense: " << defense << std::endl;
-    }
-
-    virtual void heal(int amount) { }
-
-    virtual void takeDamage(int amount)
-    {
-        if (amount < 0)
-        {
-            std::cout << "it has no effect!" << std::endl;
-        }
-        else
-        {
-            health -= amount;
-            std::cout << name << " took " << amount
-                << " damage, new Health: " << health << std::endl;
-        }
-    }
-
-    virtual void attackEnemy(Entity& target)
-    {
-        std::cout << name << " attacks " << target.name << " >> ";
-        int damage = attack - target.defense;
-        target.takeDamage(damage);
+                  << ", Attack: " << attackPower << ", Defense: " << defense << std::endl;
     }
 
     virtual ~Entity() {}
 };
 
-
-class Character : public Entity
-{
+class Character : public Entity {
 public:
-    Character(const std::string& name, int health, int attack, int defense)
-        : Entity(name, health, attack, defense) {}
+    Character(const std::string& n, int h, int a, int d)
+        : Entity(n, h, a, d) {}
 
-    void heal(int amount) override
-    {
-        if (health + amount > 100)
-        {
-            health = 100;
-            std::cout << name << " healed to maximum health points, new Health: "
-                << health << std::endl;
-        }
-        else
-        {
-            health += amount;
-            std::cout << name << " healed " << amount
-                << " health points, new Health: " << health << std::endl;
+    void attack(Entity& target) override {
+        int damage = attackPower - target.defense;
+        if (damage > 0) {
+            if (rand() % 100 < 20) {
+                damage *= 2;
+                std::cout << "Critical hit! ";
+            }
+            target.health -= damage;
+            std::cout << name << " attacks " << target.name << " for " << damage << " damage!\n";
+        } else {
+            std::cout << name << " attacks " << target.name << ", but it has no effect!\n";
         }
     }
 
-    void attackEnemy(Entity& target) override
-    {
-        int damage = attack - target.getDefense();
-
-        bool isCriticalHit = (rand() % 100) < 20;
-        if (isCriticalHit)
-            std::cout << name << " attacks " << target.getName() << " with critical hit x2 >> ";
-        target.takeDamage(isCriticalHit ? damage * 2 : damage);
+    void heal(int amount) override {
+        health += amount;
+        if (health > 100) health = 100;
+        std::cout << name << " uses a healing potion! HP restored to " << health << std::endl;
     }
 
-    void displayInfo() const override
-    {
+    void displayInfo() const override {
         std::cout << "Character: " << name << ", HP: " << health
-            << ", Attack: " << attack << ", Defense: " << defense << std::endl;
+                  << ", Attack: " << attackPower << ", Defense: " << defense << std::endl;
     }
 };
 
-class Monster : public Entity
-{
+class Monster : public Entity {
 public:
-    Monster(const std::string& name, int health, int attack, int defense)
-        : Entity(name, health, attack, defense) {}
+    Monster(const std::string& n, int h, int a, int d)
+        : Entity(n, h, a, d) {}
 
-    void attackEnemy(Entity& target) override
-    {
-        int damage = attack - target.getDefense();
-
-        bool hasExtraDamage = rand() % 100 < 30;
-        if (hasExtraDamage)
-            std::cout << name << " attacks " << target.getName() << " with extra damage +5 >> ";
-        target.takeDamage(hasExtraDamage ? damage + 5 : damage);
+    void attack(Entity& target) override {
+        int damage = attackPower - target.defense;
+        if (damage > 0) {
+            if (rand() % 100 < 30) {
+                damage += 5;
+                std::cout << "Poisonous attack! ";
+            }
+            target.health -= damage;
+            std::cout << name << " attacks " << target.name << " for " << damage << " damage!\n";
+        } else {
+            std::cout << name << " attacks " << target.name << ", but it has no effect!\n";
+        }
     }
 
-    void displayInfo() const override
-    {
+    void displayInfo() const override {
         std::cout << "Monster: " << name << ", HP: " << health
-            << ", Attack: " << attack << ", Defense: " << defense << std::endl;
+                  << ", Attack: " << attackPower << ", Defense: " << defense << std::endl;
     }
 };
 
-
-class Boss : public Monster
-{
+class Boss : public Monster {
 private:
-    std::string specialAbility;
-public:
-    Boss(const std::string& name, int health, int attack, int defense, const std::string& specialAbility)
-        : Monster(name, health, attack, defense), specialAbility(specialAbility) {}
+    std::string specialMove = "Fire Strike";
 
-    void displayInfo() const override
-    {
-        Monster::displayInfo();
-        std::cout << "Special Ability: " << specialAbility << std::endl;
+public:
+    Boss(const std::string& n, int h, int a, int d)
+        : Monster(n, h, a, d) {}
+
+    void attack(Entity& target) override {
+        int damage = attackPower - target.defense;
+        if (rand() % 100 < 40) {
+            damage += 15;
+            std::cout << "Boss unleashes " << specialMove << "! ";
+        }
+        if (damage > 0) {
+            target.health -= damage;
+            std::cout << name << " attacks " << target.name << " for " << damage << " damage!\n";
+        } else {
+            std::cout << name << " attacks " << target.name << ", but it has no effect!\n";
+        }
     }
 
-    void attackEnemy(Entity& target) override
-    {
-        int damage = attack - target.getDefense();
-
-        bool isSpecialAttack = (rand() % 100) < 20;
-        if (isSpecialAttack)
-            std::cout << name << " uses " << specialAbility << " >> ";
-        target.takeDamage(isSpecialAttack ? damage * 4 : damage);
+    void displayInfo() const override {
+        std::cout << "Boss: " << name << ", HP: " << health
+                  << ", Attack: " << attackPower << ", Defense: " << defense
+                  << ", Special: " << specialMove << std::endl;
     }
 };
-
 
 int main() {
-    Character player("Player", 100, 20, 10);
-    Monster goblin("goblin", 50, 15, 5);
-    Boss dragon("Dragon", 150, 25, 20, "Fireball");
+    srand(static_cast<unsigned>(time(0)));
 
-    Entity* entities[] = { &player, &goblin, &dragon };
+    Character hero("Hero", 100, 20, 10);
+    Monster goblin("Goblin", 50, 15, 5);
+    Boss dragon("Dragon", 200, 30, 20);
 
-    std::cout << "\n[~] Information about entities:\n" << std::endl;
-    for (const auto& entity : entities) {
+    Entity* entities[] = { &hero, &goblin, &dragon };
+
+    std::cout << "\n== Entity Info ==" << std::endl;
+    for (auto& entity : entities)
         entity->displayInfo();
-    }
 
-    std::cout << "\n[~] Player attacks enemies:\n" << std::endl;
-    player.attackEnemy(goblin);
-    player.attackEnemy(dragon);
+    std::cout << "\n== Battle Begins ==" << std::endl;
+    hero.attack(goblin);
+    goblin.attack(hero);
+    dragon.attack(hero);
 
-    std::cout << "\n[~] Goblin attacks enemies:\n" << std::endl;
-    goblin.attackEnemy(player);
-    goblin.attackEnemy(dragon);
+    std::cout << "\n== Healing ==" << std::endl;
+    hero.heal(25);
 
-    std::cout << "\n[~] Dragon attacks enemies:\n" << std::endl;
-    dragon.attackEnemy(player);
-    dragon.attackEnemy(goblin);
-
-    std::cout << "\n[~] Player heals 10 hp:\n" << std::endl;
-    player.heal(10);
-    std::cout << std::endl;
+    std::cout << "\n== Final Info ==" << std::endl;
+    for (auto& entity : entities)
+        entity->displayInfo();
 
     return 0;
 }
