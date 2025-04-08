@@ -1,16 +1,15 @@
 #include <iostream>
 #include <string>
 
-
-class Weapon
-{
+class Weapon {
 private:
     std::string name;
-    int weight;
     int damage;
+    float weight;
+
 public:
-    Weapon(const std::string& n, int w, int d)
-        : name(n), weight(w), damage(d) {
+    Weapon(const std::string& n, int d, float w)
+        : name(n), damage(d), weight(w) {
         std::cout << "Weapon " << name << " created!\n";
     }
 
@@ -19,29 +18,20 @@ public:
     }
 
     void displayInfo() const {
-        std::cout << "Name: " << name << ", Weight: " << weight
-            << ", Damage: " << damage << std::endl;
+        std::cout << "Weapon: " << name << ", Damage: " << damage
+                  << ", Weight: " << weight << "kg\n";
     }
 };
 
+int main() {
+    Weapon sword("Longsword", 25, 4.5f);
+    Weapon bow("Bow", 15, 2.0f);
+    Weapon axe("Battle Axe", 30, 6.2f);
 
-int main()
-{
-    std::cout << "\n[~] Initial weapons:\n" << std::endl;
-    Weapon* sword = new Weapon("Sword", 5, 10);
-    Weapon* dagger = new Weapon("Dagger", 2, 5);
-    Weapon* axe = new Weapon("Axe", 8, 15);
-
-    std::cout << "\n[~] Information about weapons:\n" << std::endl;
-    sword->displayInfo();
-    dagger->displayInfo();
-    axe->displayInfo();
-
-    std::cout << "\n[~] Deleting weapons:\n" << std::endl;
-    delete sword;
-    delete dagger;
-    delete axe;
-    std::cout << std::endl;
+    std::cout << "\n== Weapon Info ==\n";
+    sword.displayInfo();
+    bow.displayInfo();
+    axe.displayInfo();
 
     return 0;
 }
